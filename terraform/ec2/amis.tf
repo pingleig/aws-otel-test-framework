@@ -105,6 +105,8 @@ variable "amis" {
       family = "debian"
       arch = "amd64"
       login_user = "admin"
+      # NOTE: we copy and paste because tf does not allow using variable for variable's default value.
+      # And there is no way to define a string constant.
       user_data = <<EOF
 #! /bin/bash
 wget https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
@@ -120,6 +122,12 @@ EOF
       family = "debian"
       arch = "amd64"
       login_user = "admin"
+      user_data = <<EOF
+#! /bin/bash
+wget https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
+dpkg -i amazon-ssm-agent.deb || (which snap && snap refresh amazon-ssm-agent)
+systemctl enable amazon-ssm-agent
+EOF
     }
     amazonlinux2 = {
       os_family = "amazon_linux"
