@@ -105,6 +105,12 @@ variable "amis" {
       family = "debian"
       arch = "amd64"
       login_user = "admin"
+      user_data = <<EOF
+#! /bin/bash
+wget https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
+dpkg -i amazon-ssm-agent.deb || (which snap && snap refresh amazon-ssm-agent)
+systemctl enable amazon-ssm-agent
+EOF
     }
     debian9 = {
       os_family = "debian"
