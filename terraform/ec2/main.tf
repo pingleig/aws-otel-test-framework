@@ -127,7 +127,6 @@ resource "null_resource" "check_patch" {
     EOT
   }
 
-  # FIXME: this does not work ... terraform destroy instance first before calling this one?
   provisioner "local-exec" {
     when = destroy
     command = <<-EOT
