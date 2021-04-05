@@ -3,4 +3,4 @@
   expectedMetricTemplate: "ECS_CONTAINER_INSIGHT_PROMETHEUS_METRIC"
 - validationType: "ecs-container-insight-prometheus-logs"
   shouldValidateMetricValue: false
-  expectedLogStructureTemplate: "EKS_CONTAINER_INSIGHT_PROMETHEUS_LOG"
+  expectedLogStructureTemplate: "ECS_CONTAINER_INSIGHT_PROMETHEUS_LOG"

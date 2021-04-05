@@ -64,6 +64,7 @@ public class ContainerInsightMetricsValidator implements IValidator {
   @Override
   public void init(Context context, ValidationConfig validationConfig, ICaller caller,
                    FileConfig expectedDataTemplate) throws Exception {
+    log.info("expected template is {}", expectedDataTemplate.getPath());
     cloudWatchService = new CloudWatchService(context.getRegion());
     validateNamespaces = getNamespacesToValidate(context.getCloudWatchContext());
 

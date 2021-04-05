@@ -17,8 +17,10 @@ package com.amazon.aoc.fileconfigs;
 
 public enum ExpectedLogStructure implements FileConfig {
   EKS_CONTAINER_INSIGHT_LOG(
-          "/expected-data-template/eksContainerInsightExpectedLogStructures.mustache"),
-  ;
+      "/expected-data-template/eksContainerInsightExpectedLogStructures.mustache"),
+  ECS_CONTAINER_INSIGHT_PROMETHEUS_LOG(
+      "/expected-data-template/ecsContainerInsightPrometheusExpectedLogStructures.mustache"
+  );
 
   private String path;
 
