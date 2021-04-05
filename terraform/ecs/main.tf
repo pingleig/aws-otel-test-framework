@@ -97,11 +97,24 @@ data "template_file" "task_def" {
   }
 }
 
+data "template_file" "extra_apps_defs" {
+  for_each = var.ecs_extra_apps
+  template = file("${var.testcase}/${each.value.definition}")
+#  var = {
+#    image = each.value.definiton
+#  }
+}
 
 
 # debug
 output "rendered" {
   value = data.template_file.task_def.rendered
+}
+
+output "extra_apps_defs_rendered" {
+  value = {
+    for k, v in data.template_file.extra_apps_defs: k => v.rendered
+  }
 }
 
 resource "aws_ecs_task_definition" "aoc" {
@@ -129,6 +142,18 @@ resource "aws_ecs_task_definition" "aoc" {
   }
 
   depends_on = [null_resource.mount_efs]
+}
+
+resource "aws_ecs_task_definition" "extra_apps" {
+  for_each = var.ecs_extra_apps
+  family =                 "taskdef-${module.common.testing_id}-${each.value.service_name}"
+  container_definitions = data.template_file.extra_apps_defs[each.key].rendered
+  network_mode = each.value.network_mode
+  # TODO: switch mode based on config, some network mode only works with ec2
+  cpu = 256
+  memory = 512
+  task_role_arn = module.basic_components.aoc_iam_role_arn
+  execution_role_arn = module.basic_components.aoc_iam_role_arn
 }
 
 ## create elb

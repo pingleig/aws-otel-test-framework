@@ -28,3 +28,16 @@ variable "mock_endpoint" {
 variable "ecs_taskdef_directory" {
   default = "defaults"
 }
+
+variable "ecs_extra_apps" {
+  type =    map(object({
+    definition =   string
+    # TODO: path to definition file, or use same test case folder
+    service_name = string
+    service_type = string
+    replicas = number
+    network_mode = string
+  }))
+  default = {}
+}
+
