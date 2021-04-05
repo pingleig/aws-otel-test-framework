@@ -29,14 +29,21 @@ variable "ecs_taskdef_directory" {
   default = "defaults"
 }
 
+variable "ecs_extra_apps_image_repo" {
+  # TODO: change the image repo to some actual repo
+  default = "public.ecr.aws/aws-observability/blabla"
+}
+
 variable "ecs_extra_apps" {
   type =    map(object({
     definition =   string
-    # TODO: path to definition file, or use same test case folder
     service_name = string
     service_type = string
-    replicas = number
+    replicas =     number
     network_mode = string
+    launch_type =  string
+    cpu =          number
+    memory =       number
   }))
   default = {}
 }

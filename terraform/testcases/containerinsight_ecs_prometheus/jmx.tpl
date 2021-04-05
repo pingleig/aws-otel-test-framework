@@ -17,7 +17,7 @@
         "options": {
           "awslogs-create-group": "True",
           "awslogs-group": "/pingleig/aoc/ecs-sd",
-          "awslogs-region": "{{awslogs-region}}",
+          "awslogs-region": "${region}",
           "awslogs-stream-prefix": "aoc-ecs-sd-tomcat-jmx"
         }
       }

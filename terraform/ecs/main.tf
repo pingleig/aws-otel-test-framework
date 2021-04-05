@@ -43,8 +43,8 @@ module "basic_components" {
 }
 
 locals {
-  ecs_taskdef_path    = "../templates/${var.ecs_taskdef_directory}/ecs_taskdef.tpl"
-  sample_app_image    = var.sample_app_image != "" ? var.sample_app_image : module.basic_components.sample_app_image
+  ecs_taskdef_path =  fileexists("${var.testcase}/ecs_taskdef.tpl") ? "${var.testcase}/ecs_taskdef.tpl" : "../templates/${var.ecs_taskdef_directory}/ecs_taskdef.tpl"
+  sample_app_image = var.sample_app_image != "" ? var.sample_app_image : module.basic_components.sample_app_image
   mocked_server_image = var.mocked_server_image != "" ? var.mocked_server_image : module.basic_components.mocked_server_image
 }
 
@@ -97,24 +97,10 @@ data "template_file" "task_def" {
   }
 }
 
-data "template_file" "extra_apps_defs" {
-  for_each = var.ecs_extra_apps
-  template = file("${var.testcase}/${each.value.definition}")
-#  var = {
-#    image = each.value.definiton
-#  }
-}
-
 
 # debug
 output "rendered" {
   value = data.template_file.task_def.rendered
-}
-
-output "extra_apps_defs_rendered" {
-  value = {
-    for k, v in data.template_file.extra_apps_defs: k => v.rendered
-  }
 }
 
 resource "aws_ecs_task_definition" "aoc" {
@@ -142,18 +128,6 @@ resource "aws_ecs_task_definition" "aoc" {
   }
 
   depends_on = [null_resource.mount_efs]
-}
-
-resource "aws_ecs_task_definition" "extra_apps" {
-  for_each = var.ecs_extra_apps
-  family =                 "taskdef-${module.common.testing_id}-${each.value.service_name}"
-  container_definitions = data.template_file.extra_apps_defs[each.key].rendered
-  network_mode = each.value.network_mode
-  # TODO: switch mode based on config, some network mode only works with ec2
-  cpu = 256
-  memory = 512
-  task_role_arn = module.basic_components.aoc_iam_role_arn
-  execution_role_arn = module.basic_components.aoc_iam_role_arn
 }
 
 ## create elb
@@ -287,7 +261,7 @@ module "validator_without_sample_app" {
   aws_access_key_id     = var.aws_access_key_id
   aws_secret_access_key = var.aws_secret_access_key
 
-  depends_on = [aws_ecs_service.aoc_without_sample_app]
+  depends_on = [aws_ecs_service.aoc_without_sample_app, aws_ecs_service.extra_apps]
 }
 
 
