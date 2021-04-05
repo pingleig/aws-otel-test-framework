@@ -18,7 +18,7 @@ ecs_extra_apps =      {
 
   nginx = {
     definition =   "nginx.tpl"
-    service_name = "nginx"
+    service_name = "nginx-service"
     service_type = "replica"
     replicas =     1
     network_mode = "bridge"

@@ -71,6 +71,7 @@ resource "aws_ssm_parameter" "otconfig" {
   name  = "otconfig-${module.common.testing_id}"
   type  = "String"
   value = module.basic_components.otconfig_content
+  tier = "Advanced"
 }
 
 ## create task def
