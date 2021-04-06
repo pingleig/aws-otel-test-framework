@@ -26,6 +26,11 @@ variable "disable_efs" {
   default = false
 }
 
+# prometheus does not need mocked server
+variable "disable_mocked_server" {
+  default = false
+}
+
 variable "mock_endpoint" {
   default = "localhost/put-data"
 }

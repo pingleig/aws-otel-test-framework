@@ -85,6 +85,8 @@ resource "aws_instance" "collector_efs_ec2" {
 }
 
 resource "null_resource" "mount_efs" {
+  count = !var.sample_app_callable ? 1 : 0
+
   provisioner "remote-exec" {
     inline = [
       "sudo mkdir -p /efs",

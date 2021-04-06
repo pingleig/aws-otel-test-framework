@@ -214,7 +214,7 @@ resource "aws_ecs_service" "aoc" {
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.mocked_server_lb_tg.arn
+    target_group_arn = aws_lb_target_group.mocked_server_lb_tg[0].arn
     container_name   = "mocked-server"
     container_port   = module.common.mocked_server_http_port
   }
@@ -254,7 +254,7 @@ module "validator" {
   testing_id                   = module.common.testing_id
   metric_namespace             = "${module.common.otel_service_namespace}/${module.common.otel_service_name}"
   sample_app_endpoint          = "http://${aws_lb.aoc_lb[0].dns_name}:${module.common.sample_app_lb_port}"
-  mocked_server_validating_url = "http://${aws_lb.mocked_server_lb.dns_name}:${module.common.mocked_server_lb_port}/check-data"
+  mocked_server_validating_url = "http://${aws_lb.mocked_server_lb[0].dns_name}:${module.common.mocked_server_lb_port}/check-data"
   cortex_instance_endpoint     = var.cortex_instance_endpoint
 
   aws_access_key_id     = var.aws_access_key_id
@@ -271,7 +271,7 @@ module "validator_without_sample_app" {
   region                       = var.region
   testing_id                   = module.common.testing_id
   metric_namespace             = "${module.common.otel_service_namespace}/${module.common.otel_service_name}"
-  mocked_server_validating_url = "http://${aws_lb.mocked_server_lb.dns_name}:${module.common.mocked_server_lb_port}/check-data"
+  mocked_server_validating_url = var.disable_mocked_server ? "" : "http://${aws_lb.mocked_server_lb[0].dns_name}:${module.common.mocked_server_lb_port}/check-data"
 
   ecs_cluster_name    = module.ecs_cluster.cluster_name
   ecs_task_arn        = var.disable_efs ? aws_ecs_task_definition.aoc_no_efs[0].arn : aws_ecs_task_definition.aoc[0].arn
