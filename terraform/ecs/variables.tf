@@ -21,6 +21,11 @@ variable "sample_app_callable" {
   default = true
 }
 
+# we use efs for copy cert, which is not required in cases like prometheus
+variable "disable_efs" {
+  default = false
+}
+
 variable "mock_endpoint" {
   default = "localhost/put-data"
 }

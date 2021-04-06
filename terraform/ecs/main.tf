@@ -104,19 +104,25 @@ output "rendered" {
   value = data.template_file.task_def.rendered
 }
 
+locals {
+  # simply use one role for task role and execution role,
+  # we could separate them in the future if
+  # we want to limit the permissions of the roles
+  task_role_arn      = module.basic_components.aoc_iam_role_arn
+  execution_role_arn = module.basic_components.aoc_iam_role_arn
+}
+
+# use efs to mount cert
 resource "aws_ecs_task_definition" "aoc" {
+  count                    = var.disable_efs ? 0 : 1
   family                   = "taskdef-${module.common.testing_id}"
   container_definitions    = data.template_file.task_def.rendered
   network_mode             = "awsvpc"
   requires_compatibilities = ["EC2", "FARGATE"]
   cpu                      = 256
   memory                   = 512
-
-  # simply use one role for task role and execution role,
-  # we could separate them in the future if
-  # we want to limit the permissions of the roles
-  task_role_arn      = module.basic_components.aoc_iam_role_arn
-  execution_role_arn = module.basic_components.aoc_iam_role_arn
+  task_role_arn            = local.task_role_arn
+  execution_role_arn       = local.execution_role_arn
 
   # mount efs
   volume {
@@ -129,6 +135,19 @@ resource "aws_ecs_task_definition" "aoc" {
   }
 
   depends_on = [null_resource.mount_efs]
+}
+
+# definition that does not require efs
+resource "aws_ecs_task_definition" "aoc_no_efs" {
+  count                    = var.disable_efs ? 1 : 0
+  family                   = "taskdef-${module.common.testing_id}"
+  container_definitions    = data.template_file.task_def.rendered
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["EC2", "FARGATE"]
+  cpu                      = 256
+  memory                   = 512
+  task_role_arn            = local.task_role_arn
+  execution_role_arn       = local.execution_role_arn
 }
 
 ## create elb
@@ -183,7 +202,7 @@ resource "aws_ecs_service" "aoc" {
   count            = var.sample_app_callable ? 1 : 0
   name             = "aocservice-${module.common.testing_id}"
   cluster          = module.ecs_cluster.cluster_id
-  task_definition  = "${aws_ecs_task_definition.aoc.family}:1"
+  task_definition  = "${aws_ecs_task_definition.aoc[0].family}:1"
   desired_count    = 1
   launch_type      = var.ecs_launch_type
   platform_version = var.ecs_launch_type == "FARGATE" ? "1.4.0" : null
@@ -211,7 +230,7 @@ resource "aws_ecs_service" "aoc_without_sample_app" {
   count            = !var.sample_app_callable ? 1 : 0
   name             = "aocservice-${module.common.testing_id}"
   cluster          = module.ecs_cluster.cluster_id
-  task_definition  = "${aws_ecs_task_definition.aoc.family}:1"
+  task_definition  = var.disable_efs ? "${aws_ecs_task_definition.aoc_no_efs[0].family}:1" : "${aws_ecs_task_definition.aoc[0].family}:1"
   desired_count    = 1
   launch_type      = var.ecs_launch_type
   platform_version = var.ecs_launch_type == "FARGATE" ? "1.4.0" : null
@@ -255,9 +274,9 @@ module "validator_without_sample_app" {
   mocked_server_validating_url = "http://${aws_lb.mocked_server_lb.dns_name}:${module.common.mocked_server_lb_port}/check-data"
 
   ecs_cluster_name    = module.ecs_cluster.cluster_name
-  ecs_task_arn        = aws_ecs_task_definition.aoc.arn
-  ecs_taskdef_family  = aws_ecs_task_definition.aoc.family
-  ecs_taskdef_version = aws_ecs_task_definition.aoc.revision
+  ecs_task_arn        = var.disable_efs ? aws_ecs_task_definition.aoc_no_efs[0].arn : aws_ecs_task_definition.aoc[0].arn
+  ecs_taskdef_family  = var.disable_efs ? aws_ecs_task_definition.aoc_no_efs[0].family : aws_ecs_task_definition.aoc[0].family
+  ecs_taskdef_version = var.disable_efs ? aws_ecs_task_definition.aoc_no_efs[0].revision : aws_ecs_task_definition.aoc[0].revision
 
   aws_access_key_id     = var.aws_access_key_id
   aws_secret_access_key = var.aws_secret_access_key
