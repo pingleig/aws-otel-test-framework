@@ -35,15 +35,15 @@ variable "ecs_extra_apps_image_repo" {
 }
 
 variable "ecs_extra_apps" {
-  type =    map(object({
-    definition =   string
+  type = map(object({
+    definition   = string
     service_name = string
     service_type = string
-    replicas =     number
+    replicas     = number
     network_mode = string
-    launch_type =  string
-    cpu =          number
-    memory =       number
+    launch_type  = string
+    cpu          = number
+    memory       = number
   }))
   default = {}
 }

@@ -43,8 +43,8 @@ module "basic_components" {
 }
 
 locals {
-  ecs_taskdef_path =  fileexists("${var.testcase}/ecs_taskdef.tpl") ? "${var.testcase}/ecs_taskdef.tpl" : "../templates/${var.ecs_taskdef_directory}/ecs_taskdef.tpl"
-  sample_app_image = var.sample_app_image != "" ? var.sample_app_image : module.basic_components.sample_app_image
+  ecs_taskdef_path    = fileexists("${var.testcase}/ecs_taskdef.tpl") ? "${var.testcase}/ecs_taskdef.tpl" : "../templates/${var.ecs_taskdef_directory}/ecs_taskdef.tpl"
+  sample_app_image    = var.sample_app_image != "" ? var.sample_app_image : module.basic_components.sample_app_image
   mocked_server_image = var.mocked_server_image != "" ? var.mocked_server_image : module.basic_components.mocked_server_image
 }
 
@@ -71,7 +71,7 @@ resource "aws_ssm_parameter" "otconfig" {
   name  = "otconfig-${module.common.testing_id}"
   type  = "String"
   value = module.basic_components.otconfig_content
-  tier = "Advanced"
+  tier  = "Advanced"
 }
 
 ## create task def
