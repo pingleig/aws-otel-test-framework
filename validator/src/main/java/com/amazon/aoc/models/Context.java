@@ -28,6 +28,7 @@ public class Context {
   @NonNull
   private String region;
 
+  @NonNull
   private boolean isCanary;
 
   private String metricNamespace;
