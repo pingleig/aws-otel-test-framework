@@ -59,6 +59,8 @@ exporters:
     namespace: ECS/ContainerInsights/Prometheus
     # TODO: is there a cluster name for ecs here?
     log_group_name: "/aws/ecs/containerinsights/aoc-testing-${testing_id}/prometheus"
+    # FIXME: we hard code the log stream name for now
+    log_stream_name: 'ecssd'
     dimension_rollup_option: NoDimensionRollup
     metric_declarations:
       # nginx

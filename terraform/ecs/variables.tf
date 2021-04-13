@@ -44,6 +44,10 @@ variable "ecs_extra_apps_image_repo" {
   default = "public.ecr.aws/aws-observability/blabla"
 }
 
+#variable "cloudwatch_context" {
+#  default = {}
+#}
+
 variable "ecs_extra_apps" {
   type = map(object({
     definition   = string
