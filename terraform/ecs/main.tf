@@ -267,10 +267,10 @@ module "validator" {
   mocked_server_validating_url = "http://${aws_lb.mocked_server_lb[0].dns_name}:${module.common.mocked_server_lb_port}/check-data"
   cortex_instance_endpoint     = var.cortex_instance_endpoint
   # FIXME: hard code it for now
-  cloudwatch_context_json = jsondecode({
+  cloudwatch_context_json = jsonencode({
     clusterName : module.ecs_cluster.cluster_id
     jmx : {
-      namespace : "foo",
+      namespace : "foo"
       job : "ecssd"
     }
   })
