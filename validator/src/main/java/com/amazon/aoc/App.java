@@ -82,7 +82,7 @@ public class App implements Callable<Integer> {
   @CommandLine.Option(
           names = {"--canary"},
           defaultValue = "false")
-  private boolean isCanary;
+  private Boolean isCanary;
 
   @CommandLine.Option(
           names = {"--testcase"},

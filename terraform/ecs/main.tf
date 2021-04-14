@@ -266,8 +266,8 @@ module "validator" {
   sample_app_endpoint          = "http://${aws_lb.aoc_lb[0].dns_name}:${module.common.sample_app_lb_port}"
   mocked_server_validating_url = "http://${aws_lb.mocked_server_lb[0].dns_name}:${module.common.mocked_server_lb_port}/check-data"
   cortex_instance_endpoint     = var.cortex_instance_endpoint
-  aws_access_key_id     = var.aws_access_key_id
-  aws_secret_access_key = var.aws_secret_access_key
+  aws_access_key_id            = var.aws_access_key_id
+  aws_secret_access_key        = var.aws_secret_access_key
 
   depends_on = [
   aws_ecs_service.aoc]
@@ -289,7 +289,7 @@ module "validator_without_sample_app" {
   ecs_taskdef_version = var.disable_efs ? aws_ecs_task_definition.aoc_no_efs[0].revision : aws_ecs_task_definition.aoc[0].revision
   # FIXME: hard code it for now
   cloudwatch_context_json = jsonencode({
-    clusterName : module.ecs_cluster.cluster_id
+    clusterName : "aoc-testing-${module.common.testing_id}"
     jmx : {
       namespace : "foo"
       job : "ecssd"

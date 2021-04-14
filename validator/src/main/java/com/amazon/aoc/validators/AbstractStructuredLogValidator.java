@@ -27,8 +27,11 @@ import com.amazon.aoc.services.CloudWatchService;
 import com.amazonaws.services.logs.model.OutputLogEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonschema.exceptions.ProcessingException;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import com.github.fge.jsonschema.report.ListReportProvider;
+import com.github.fge.jsonschema.report.LogLevel;
 import com.github.fge.jsonschema.report.ProcessingReport;
 import com.github.fge.jsonschema.util.JsonLoader;
 import lombok.extern.log4j.Log4j2;
@@ -48,7 +51,7 @@ public abstract class AbstractStructuredLogValidator implements IValidator {
 
   protected String logGroupName;
 
-  private static final int MAX_RETRY_COUNT = 6;
+  private static final int MAX_RETRY_COUNT = 3;
   private static final int QUERY_LIMIT = 500;
   private static final int CHECK_INTERVAL_IN_MILLI = 30 * 1000;
   private static final int CHECK_DURATION_IN_SECONDS = 2 * 60;
@@ -64,7 +67,7 @@ public abstract class AbstractStructuredLogValidator implements IValidator {
 
     CloudWatchContext cwContext = context.getCloudWatchContext();
     logGroupName = String.format("/aws/containerinsights/%s/%s",
-            cwContext.getClusterName(), validateType);
+        cwContext.getClusterName(), validateType);
     init(context, expectedDataTemplate.getPath());
   }
 
@@ -76,6 +79,10 @@ public abstract class AbstractStructuredLogValidator implements IValidator {
 
   abstract void updateJsonSchemaValidationResult(JsonNode logEventNode, boolean success);
 
+  void printJsonSchemaValidationResult(JsonNode logEventNode, ProcessingReport report) {
+    // do nothing by default
+  }
+
   abstract void checkResult() throws Exception;
 
   @Override
@@ -84,24 +91,30 @@ public abstract class AbstractStructuredLogValidator implements IValidator {
 
     RetryHelper.retry(MAX_RETRY_COUNT, CHECK_INTERVAL_IN_MILLI, true, () -> {
       Instant startTime = Instant.now().minusSeconds(CHECK_DURATION_IN_SECONDS)
-              .truncatedTo(ChronoUnit.MINUTES);
+          .truncatedTo(ChronoUnit.MINUTES);
 
       for (String logStreamName : getValidatingLogStreamNames()) {
         List<OutputLogEvent> logEvents = cloudWatchService.getLogs(logGroupName, logStreamName,
-                startTime.getLong(ChronoField.MILLI_OF_SECOND), QUERY_LIMIT);
+            startTime.getLong(ChronoField.MILLI_OF_SECOND), QUERY_LIMIT);
         if (logEvents.isEmpty()) {
           throw new BaseException(
-                  ExceptionCode.LOG_FORMAT_NOT_MATCHED,
-                  String.format("[ContainerInsight] no logs found under log stream %s",
-                          logStreamName));
+              ExceptionCode.LOG_FORMAT_NOT_MATCHED,
+              String.format("[ContainerInsight] no logs found under log stream %s",
+                  logStreamName));
         }
         for (OutputLogEvent logEvent : logEvents) {
           JsonNode logEventNode = mapper.readTree(logEvent.getMessage());
           JsonSchema jsonSchema = findJsonSchemaForValidation(logEventNode);
           if (jsonSchema != null) {
-            ProcessingReport report = jsonSchema.validate(
-                    JsonLoader.fromString(logEventNode.toString()));
-            updateJsonSchemaValidationResult(logEventNode, report.isSuccess());
+            try {
+              ProcessingReport report = jsonSchema.validate(
+                  JsonLoader.fromString(logEventNode.toString()));
+              printJsonSchemaValidationResult(logEventNode, report);
+              updateJsonSchemaValidationResult(logEventNode, report.isSuccess());
+            } catch (ProcessingException ex) {
+              // log.error(ex);
+              log.error(ex.getProcessingMessage());
+            }
           }
         }
       }
@@ -113,7 +126,10 @@ public abstract class AbstractStructuredLogValidator implements IValidator {
 
   protected static JsonSchema parseJsonSchema(String templateInput) throws Exception {
     JsonNode jsonNode = JsonLoader.fromString(templateInput);
-    JsonSchemaFactory jsonSchemaFactory = JsonSchemaFactory.byDefault();
+    // JsonSchemaFactory jsonSchemaFactory = JsonSchemaFactory.byDefault();
+    JsonSchemaFactory jsonSchemaFactory = JsonSchemaFactory.newBuilder().setReportProvider(
+        new ListReportProvider(LogLevel.INFO, LogLevel.ERROR)
+    ).freeze();
     return jsonSchemaFactory.getJsonSchema(jsonNode);
   }
 

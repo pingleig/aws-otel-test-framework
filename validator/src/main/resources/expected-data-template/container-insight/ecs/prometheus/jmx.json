@@ -44,8 +44,7 @@
     "LaunchType": {},
     "InstanceType": {},
     "VpcId": {},
-    "SubnetId": {},
-    "CWAgent_Integ_Test_EC2_Bridge_Dynamic_Port": {}
+    "SubnetId": {}
   },
   "required": [
     "ClusterName",
@@ -89,7 +88,6 @@
     "InstanceType",
     "VpcId",
     "SubnetId",
-    "CWAgent_JAR_EC2_Bridge_Dynamic_Port_9406"
   ],
   "additionalProperties": true
 }

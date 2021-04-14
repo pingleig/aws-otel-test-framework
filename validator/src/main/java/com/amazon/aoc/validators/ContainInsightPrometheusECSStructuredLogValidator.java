@@ -8,6 +8,8 @@ import com.amazon.aoc.models.Context;
 import com.amazonaws.util.StringUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonschema.main.JsonSchema;
+import com.github.fge.jsonschema.report.ProcessingReport;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FilenameUtils;
 
 import java.util.ArrayList;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@Log4j2
 public class ContainInsightPrometheusECSStructuredLogValidator
     extends AbstractStructuredLogValidator {
   public ContainInsightPrometheusECSStructuredLogValidator() {
@@ -40,8 +43,10 @@ public class ContainInsightPrometheusECSStructuredLogValidator
     }
 
     // /aws/ecs/containerinsights/aoc-prometheus-dashboard-1/prometheus
-    logGroupName = String.format("/aws/containerinsights/%s/%s",
+    logGroupName = String.format("/aws/ecs/containerinsights/%s/%s",
         context.getCloudWatchContext().getClusterName(), "prometheus");
+    log.info("log group name is {}", logGroupName);
+    log.info("size of validate schema is {}", validateJsonSchema.size());
   }
 
   @Override
@@ -61,6 +66,7 @@ public class ContainInsightPrometheusECSStructuredLogValidator
     // might want to change that later)
     String taskFamily = logEventNode.get("TaskDefinitionFamily").asText();
     if (taskFamily.contains("jmx")) {
+      // log.info("jmx task family {}", taskFamily);
       return validateJsonSchema.get("jmx");
     }
     if (taskFamily.contains("nginx")) {
@@ -68,6 +74,16 @@ public class ContainInsightPrometheusECSStructuredLogValidator
     }
     // TODO: what to when we can't find the valid validator, seems just return null
     return null;
+  }
+
+  @Override
+  void printJsonSchemaValidationResult(JsonNode logEventNode, ProcessingReport report) {
+    if (!report.isSuccess()) {
+      log.warn("validation failed for {}", logEventNode);
+      log.error(report);
+    } else {
+      log.info("validation passed for {}", logEventNode);
+    }
   }
 
   // TODO(mengyi): the update and check result
