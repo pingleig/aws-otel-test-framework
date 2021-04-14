@@ -279,7 +279,7 @@ module "validator" {
 resource "null_resource" "wait_ecs_ec2" {
   count = var.ecs_launch_type == "EC2" ? 1 : 0
   depends_on = [
-  module.ecs_cluster.launch_configuration_name]
+  module.ecs_cluster.autoscaling_group_name]
 }
 
 module "validator_without_sample_app" {
