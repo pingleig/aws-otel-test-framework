@@ -65,7 +65,8 @@ module "ecs_cluster" {
   associate_public_ip_addresses = "yes"
   security_groups = [
   module.basic_components.aoc_security_group_id]
-  cluster_desired_capacity = 1
+  cluster_desired_capacity             = 1
+  cluster_instance_iam_policy_contents = file("instance-policy.json")
 }
 
 resource "aws_ssm_parameter" "otconfig" {
@@ -274,6 +275,13 @@ module "validator" {
   aws_ecs_service.aoc]
 }
 
+# TODO: this is not that accurate as we might deploy extra apps and collector using different launch type
+resource "null_resource" "wait_ecs_ec2" {
+  count = var.ecs_launch_type == "EC2" ? 1 : 0
+  depends_on = [
+  module.ecs_cluster.launch_configuration_name]
+}
+
 module "validator_without_sample_app" {
   count  = !var.sample_app_callable ? 1 : 0
   source = "../validation"
@@ -290,7 +298,7 @@ module "validator_without_sample_app" {
   ecs_taskdef_version = var.disable_efs ? aws_ecs_task_definition.aoc_no_efs[0].revision : aws_ecs_task_definition.aoc[0].revision
   # FIXME: hard code it for now
   cloudwatch_context_json = jsonencode({
-    clusterName : "aoc-testing-${module.common.testing_id}"
+    clusterName : module.ecs_cluster.cluster_name
     jmx : {
       namespace : "foo"
       job : "ecssd"
@@ -301,6 +309,7 @@ module "validator_without_sample_app" {
   aws_secret_access_key = var.aws_secret_access_key
 
   depends_on = [
+    null_resource.wait_ecs_ec2,
     aws_ecs_service.aoc_without_sample_app,
   aws_ecs_service.extra_apps]
 }
