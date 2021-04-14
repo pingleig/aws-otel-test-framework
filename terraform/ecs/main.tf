@@ -133,7 +133,7 @@ resource "aws_ecs_task_definition" "aoc" {
     name = "efs"
 
     efs_volume_configuration {
-      file_system_id = aws_efs_file_system.collector_efs.id
+      file_system_id = aws_efs_file_system.collector_efs[0].id
       root_directory = "/"
     }
   }
@@ -144,7 +144,8 @@ resource "aws_ecs_task_definition" "aoc" {
 
 # definition that does not require efs
 resource "aws_ecs_task_definition" "aoc_no_efs" {
-  count                 = var.disable_efs ? 1 : 0
+  count = var.disable_efs ? 1 : 0
+
   family                = "taskdef-${module.common.testing_id}"
   container_definitions = data.template_file.task_def.rendered
   network_mode          = "awsvpc"

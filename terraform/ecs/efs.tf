@@ -23,6 +23,8 @@ locals {
   efs_name = "efs-${module.common.testing_id}"
 }
 resource "aws_efs_file_system" "collector_efs" {
+  count = var.disable_efs ? 0 : 1
+
   creation_token = module.common.testing_id
 
   tags = {
@@ -32,9 +34,9 @@ resource "aws_efs_file_system" "collector_efs" {
 
 resource "aws_efs_mount_target" "collector_efs_mount" {
   # map to all subnets
-  count = 3
+  count = var.disable_efs ? 0 : 3
 
-  file_system_id  = aws_efs_file_system.collector_efs.id
+  file_system_id  = aws_efs_file_system.collector_efs[0].id
   subnet_id       = element(tolist(module.basic_components.aoc_public_subnet_ids), count.index)
   security_groups = [module.basic_components.aoc_security_group_id]
 
@@ -55,27 +57,33 @@ data "aws_ami" "amazonlinux2" {
     values = ["amzn2-ami-hvm*"]
   }
 
-  owners = ["amazon"] # Canonical
+  owners = ["amazon"]
 }
 
 resource "tls_private_key" "ssh_key" {
+  count = var.disable_efs ? 0 : 1
+
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
 resource "aws_key_pair" "aws_ssh_key" {
+  count = var.disable_efs ? 0 : 1
+
   key_name   = "testing-${module.common.testing_id}"
-  public_key = tls_private_key.ssh_key.public_key_openssh
+  public_key = tls_private_key.ssh_key[0].public_key_openssh
 }
 
 resource "aws_instance" "collector_efs_ec2" {
+  count = var.disable_efs ? 0 : 1
+
   ami                         = data.aws_ami.amazonlinux2.id
   instance_type               = "t2.micro"
   subnet_id                   = tolist(module.basic_components.aoc_public_subnet_ids)[0]
   vpc_security_group_ids      = [module.basic_components.aoc_security_group_id]
   associate_public_ip_address = true
   iam_instance_profile        = module.common.aoc_iam_role_name
-  key_name                    = aws_key_pair.aws_ssh_key.key_name
+  key_name                    = aws_key_pair.aws_ssh_key[0].key_name
 
   volume_tags = {
     Name = local.efs_name
@@ -91,28 +99,31 @@ resource "null_resource" "mount_efs" {
     inline = [
       "sudo mkdir -p /efs",
       "sudo yum install amazon-efs-utils -y",
-      "sudo mount -t efs ${aws_efs_file_system.collector_efs.id}:/ /efs"
+      "sudo mount -t efs ${aws_efs_file_system.collector_efs[0].id}:/ /efs"
     ]
 
     connection {
       type        = "ssh"
       user        = "ec2-user"
-      private_key = tls_private_key.ssh_key.private_key_pem
-      host        = aws_instance.collector_efs_ec2.public_ip
+      private_key = tls_private_key.ssh_key[0].private_key_pem
+      host        = aws_instance.collector_efs_ec2[0].public_ip
     }
   }
 
   depends_on = [aws_instance.collector_efs_ec2]
 }
+
 resource "null_resource" "scp_cert" {
+  count = var.disable_efs ? 0 : 1
+
   provisioner "file" {
     content     = module.basic_components.mocked_server_cert_content
     destination = "/tmp/ca-bundle.crt"
     connection {
       type        = "ssh"
       user        = "ec2-user"
-      private_key = tls_private_key.ssh_key.private_key_pem
-      host        = aws_instance.collector_efs_ec2.public_ip
+      private_key = tls_private_key.ssh_key[0].private_key_pem
+      host        = aws_instance.collector_efs_ec2[0].public_ip
     }
   }
 
@@ -123,19 +134,21 @@ resource "null_resource" "scp_cert" {
     connection {
       type        = "ssh"
       user        = "ec2-user"
-      private_key = tls_private_key.ssh_key.private_key_pem
-      host        = aws_instance.collector_efs_ec2.public_ip
+      private_key = tls_private_key.ssh_key[0].private_key_pem
+      host        = aws_instance.collector_efs_ec2[0].public_ip
     }
   }
 
   depends_on = [null_resource.mount_efs]
 }
 
+// TODO: https://github.com/hashicorp/terraform/issues/25578
+// https://stackoverflow.com/questions/59375652/create-terraform-output-when-count-enabled
 output "private_key" {
-  value = tls_private_key.ssh_key.private_key_pem
+  value = join("", tls_private_key.ssh_key[*].private_key_pem)
 }
 
 output "efs_ip" {
-  value = aws_instance.collector_efs_ec2.public_ip
+  value = join("", aws_instance.collector_efs_ec2[*].public_ip)
 }
 
