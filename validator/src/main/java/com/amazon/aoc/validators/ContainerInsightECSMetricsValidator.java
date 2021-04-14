@@ -30,7 +30,7 @@ public class ContainerInsightECSMetricsValidator implements IValidator {
   private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
   private List<Metric> expectedMetrics;
 
-  private static final int MAX_RETRY_COUNT = 3;
+  private static final int MAX_RETRY_COUNT = 6;
   private static final int CHECK_INTERVAL_IN_MILLI = 30 * 1000;
   private static final int CHECK_DURATION_IN_SECONDS = 2 * 60;
 
@@ -50,7 +50,7 @@ public class ContainerInsightECSMetricsValidator implements IValidator {
   @Override
   public void validate() throws Exception {
     log.info("[ContainerInsight] start validating metrics, pause 60s for metric collection");
-    TimeUnit.SECONDS.sleep(10);
+    TimeUnit.SECONDS.sleep(60);
     log.info("[ContainerInsight] resume validation");
 
     RetryHelper.retry(MAX_RETRY_COUNT, CHECK_INTERVAL_IN_MILLI, true, () -> {

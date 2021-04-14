@@ -277,9 +277,19 @@ module "validator" {
 
 # TODO: this is not that accurate as we might deploy extra apps and collector using different launch type
 resource "null_resource" "wait_ecs_ec2" {
-  count = var.ecs_launch_type == "EC2" ? 1 : 0
+  # count = var.ecs_launch_type == "EC2" ? 1 : 0
   depends_on = [
   module.ecs_cluster.autoscaling_group_name]
+}
+
+data "template_file" "cloudwatch_context" {
+  // FIXME: we are using namespace as task definition family
+  // TODO: we also need service name for nginx
+  template = file("${var.testcase}/cloudwatch_context.json")
+  vars = {
+    testing_id   = module.common.testing_id
+    cluster_name = module.ecs_cluster.cluster_name
+  }
 }
 
 module "validator_without_sample_app" {
@@ -296,15 +306,8 @@ module "validator_without_sample_app" {
   ecs_task_arn        = var.disable_efs ? aws_ecs_task_definition.aoc_no_efs[0].arn : aws_ecs_task_definition.aoc[0].arn
   ecs_taskdef_family  = var.disable_efs ? aws_ecs_task_definition.aoc_no_efs[0].family : aws_ecs_task_definition.aoc[0].family
   ecs_taskdef_version = var.disable_efs ? aws_ecs_task_definition.aoc_no_efs[0].revision : aws_ecs_task_definition.aoc[0].revision
-  # FIXME: hard code it for now, should pass in from var
-  cloudwatch_context_json = jsonencode({
-    clusterName : module.ecs_cluster.cluster_name
-    jmx : {
-      // FIXME: hard coded task def family name, need to add a new field
-      namespace : "taskdef-${module.common.testing_id}-jmx"
-      job : "ecssd"
-    }
-  })
+
+  cloudwatch_context_json = data.template_file.cloudwatch_context.rendered
 
   aws_access_key_id     = var.aws_access_key_id
   aws_secret_access_key = var.aws_secret_access_key

@@ -51,7 +51,7 @@ public abstract class AbstractStructuredLogValidator implements IValidator {
 
   protected String logGroupName;
 
-  private static final int MAX_RETRY_COUNT = 3;
+  private static final int MAX_RETRY_COUNT = 6;
   private static final int QUERY_LIMIT = 500;
   private static final int CHECK_INTERVAL_IN_MILLI = 30 * 1000;
   private static final int CHECK_DURATION_IN_SECONDS = 2 * 60;
