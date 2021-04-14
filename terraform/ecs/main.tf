@@ -296,11 +296,12 @@ module "validator_without_sample_app" {
   ecs_task_arn        = var.disable_efs ? aws_ecs_task_definition.aoc_no_efs[0].arn : aws_ecs_task_definition.aoc[0].arn
   ecs_taskdef_family  = var.disable_efs ? aws_ecs_task_definition.aoc_no_efs[0].family : aws_ecs_task_definition.aoc[0].family
   ecs_taskdef_version = var.disable_efs ? aws_ecs_task_definition.aoc_no_efs[0].revision : aws_ecs_task_definition.aoc[0].revision
-  # FIXME: hard code it for now
+  # FIXME: hard code it for now, should pass in from var
   cloudwatch_context_json = jsonencode({
     clusterName : module.ecs_cluster.cluster_name
     jmx : {
-      namespace : "foo"
+      // FIXME: hard coded task def family name, need to add a new field
+      namespace : "taskdef-${module.common.testing_id}-jmx"
       job : "ecssd"
     }
   })

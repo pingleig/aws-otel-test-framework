@@ -26,7 +26,7 @@ public enum ExpectedMetric implements FileConfig {
   CONTAINER_INSIGHT_EKS_PROMETHEUS_METRIC(
       "/expected-data-template/container-insight/eks/prometheus/"
           + "ContainerInsightExpectedMetrics.mustache"),
-  ECS_CONTAINER_INSIGHT_PROMETHEUS_METRIC(
+  CONTAINER_INSIGHT_ECS_PROMETHEUS_METRIC(
       "/expected-data-template/container-insight/ecs/prometheus/"
           + "ecsContainerInsightPrometheusExpectedMetrics.mustache")
   ;

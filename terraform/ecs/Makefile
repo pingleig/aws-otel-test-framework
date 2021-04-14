@@ -1,6 +1,6 @@
 validate:
 	awsl isengard get > creds.env
-	docker-compose -f validator_docker_compose.yaml up
+	docker-compose -f validator_docker_compose.yml up
 
 build:
-	docker-compose -f validator_docker_compose.yaml build
+	docker-compose -f validator_docker_compose.yml build

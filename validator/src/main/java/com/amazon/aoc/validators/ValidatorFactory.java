@@ -70,7 +70,10 @@ public class ValidatorFactory {
         validator = new ContainerInsightPrometheusStructuredLogValidator();
         expectedData = validationConfig.getExpectedLogStructureTemplate();
         break;
-      // TODO: Add ecs metrics
+      case "container-insight-ecs-prometheus-metrics":
+        validator = new ContainerInsightECSMetricsValidator();
+        expectedData = validationConfig.getExpectedMetricTemplate();
+        break;
       case "container-insight-ecs-prometheus-logs":
         validator = new ContainInsightPrometheusECSStructuredLogValidator();
         expectedData = validationConfig.getExpectedLogStructureTemplate();
