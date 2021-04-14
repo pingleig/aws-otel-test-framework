@@ -79,10 +79,6 @@ public abstract class AbstractStructuredLogValidator implements IValidator {
 
   abstract void updateJsonSchemaValidationResult(JsonNode logEventNode, boolean success);
 
-  void printJsonSchemaValidationResult(JsonNode logEventNode, ProcessingReport report) {
-    // do nothing by default
-  }
-
   abstract void checkResult() throws Exception;
 
   @Override
@@ -109,7 +105,6 @@ public abstract class AbstractStructuredLogValidator implements IValidator {
             try {
               ProcessingReport report = jsonSchema.validate(
                   JsonLoader.fromString(logEventNode.toString()));
-              printJsonSchemaValidationResult(logEventNode, report);
               updateJsonSchemaValidationResult(logEventNode, report.isSuccess());
             } catch (ProcessingException ex) {
               // log.error(ex);

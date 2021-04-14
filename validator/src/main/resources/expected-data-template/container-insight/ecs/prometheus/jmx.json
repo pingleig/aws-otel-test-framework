@@ -48,11 +48,6 @@
   },
   "required": [
     "ClusterName",
-    "Timestamp",
-    "Version",
-    "instance",
-    "job",
-    "prom_metric_type",
     "java_lang_operatingsystem_availableprocessors",
     "java_lang_operatingsystem_freephysicalmemorysize",
     "java_lang_operatingsystem_freeswapspacesize",
@@ -81,13 +76,7 @@
     "process_start_time_seconds",
     "process_virtual_memory_bytes",
     "container_name",
-    "TaskDefinitionFamily",
-    "TaskRevision",
-    "TaskGroup",
-    "LaunchType",
-    "InstanceType",
-    "VpcId",
-    "SubnetId",
+    "TaskDefinitionFamily"
   ],
   "additionalProperties": true
 }
