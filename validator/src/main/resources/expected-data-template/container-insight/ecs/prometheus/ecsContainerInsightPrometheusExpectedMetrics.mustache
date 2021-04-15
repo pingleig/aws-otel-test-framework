@@ -5,14 +5,14 @@
     - name: ClusterName
       value: {{cloudWatchContext.clusterName}}
     - name: TaskDefinitionFamily
-      value: {{cloudWatchContext.jmx.namespace}}
+      value: {{cloudWatchContext.jmx.taskDefinitionFamily}}
 - metricName: jvm_memory_pool_bytes_used
   namespace: ECS/ContainerInsights/Prometheus
   dimensions:
     - name: ClusterName
       value: {{cloudWatchContext.clusterName}}
     - name: TaskDefinitionFamily
-      value: {{cloudWatchContext.jmx.namespace}}
+      value: {{cloudWatchContext.jmx.taskDefinitionFamily}}
     - name: pool
       value: Metaspace
 - metricName: jvm_memory_bytes_used
@@ -21,6 +21,15 @@
     - name: ClusterName
       value: {{cloudWatchContext.clusterName}}
     - name: TaskDefinitionFamily
-      value: {{cloudWatchContext.jmx.namespace}}
+      value: {{cloudWatchContext.jmx.taskDefinitionFamily}}
     - name: area
       value: heap
+- metricName: nginx_up
+  namespace: ECS/ContainerInsights/Prometheus
+  dimensions:
+    - name: ClusterName
+      value: {{cloudWatchContext.clusterName}}
+    - name: TaskDefinitionFamily
+      value: {{cloudWatchContext.nginx.taskDefinitionFamily}}
+    - name: ServiceName
+      value: {{cloudWatchContext.nginx.serviceName}}
